@@ -1,7 +1,7 @@
 from flask import Flask
 from flask import render_template, request, redirect, escape
 
-from vsearch import search_for_letters
+from vsearch import search4letters
 from datetime import datetime
 
 
@@ -23,7 +23,7 @@ def do_search() -> str:
     phrase = request.form['phrase']
     letters = request.form['letters']
     title = 'Here your results'
-    results = str(search_for_letters(phrase, letters))
+    results = str(search4letters(phrase, letters))
     log_requests(request,results)
     return render_template('result.html', the_title=title, the_results = results, the_phrase = phrase, the_letters = letters,)
     
