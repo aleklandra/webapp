@@ -3,12 +3,34 @@ from flask import render_template, request, redirect, escape
 
 from vsearch import search4letters
 from datetime import datetime
+import mysql.connector
 
 
 app = Flask(__name__)
 
 def log_requests(req: 'flask_request', res: str) -> None:
     now = datetime.now()
+    dbconfig = {'host': '127.0.0.1', 
+                'user': 'aleklandra', 
+                'password': 'cfif310597', 
+                'database': 'MyTestDatabase',}
+    conn = mysql.connector.connect(**dbconfig)
+    cursor = conn.cursor()
+    phrase = 'No'
+    letters = 'No'
+    browsers = 'No'
+    if req.args.get('phrase') != None:
+        phrase = req.form['phrase']
+    if req.args.get('letters') != None:
+        letters = req.form['letters']
+    if req.user_agent.browser != None:
+        browser = req.user_agent.browser
+    print(req.user_agent.browser)
+    _SQL = """insert into log (phrase, letters, ip, browser_string, result) values (%s, %s, %s, %s, %s)"""
+    cursor.execute(_SQL, (phrase, letters, req.remote_addr, browsers, res , ))
+    conn.commit()
+    cursor.close()
+    conn.close()
     with open('log_file.txt', 'a') as log_file:
         print(str(now),req.form, req.remote_addr, req.user_agent, res, file=log_file, sep='|')
 
@@ -17,7 +39,7 @@ def log_requests(req: 'flask_request', res: str) -> None:
 def hello() -> '302':
     return redirect('/entry')
 
-@app.route('/search', methods=['POST'])
+@app.route('/search', methods=['POST','GET'])
 
 def do_search() -> str:
     phrase = request.form['phrase']
